@@ -10,6 +10,7 @@ export default class App extends React.Component {
     this.old = "";
     this.prevPage = 1;
     this.totalPages = 0;
+    this.searchedMovie = [];
     this.slicedMovies = [];
     this.state = {
       movies: [],
@@ -27,7 +28,7 @@ export default class App extends React.Component {
     let prev = this.state.search;
     if (val.length > 0) {
       this.props = {
-        keySearch: val
+        keyword: val
       };
       this.setState({ search: val });
       this.old = prev;
@@ -59,17 +60,32 @@ export default class App extends React.Component {
     this.setState({ page: p, slicedMovies: this.slicedMovies });
   }
 
-  fetchData = () => {
+  fetchData = keyword => {
     fetch(`https://api.myjson.com/bins/t3kpk`, { method: "GET" })
       .then(response => response.json())
       .then(json => {
-        console.log(json);
-        this.setState({ movies: json });
+        if (keyword) {
+          this.searchedMovie.length = 0;
+          json.map(e => {
+            if (e.plot_keywords.split("|").includes(keyword)) {
+              this.searchedMovie.push(e);
+              console.log(this.searchedMovie);
+            }
+          });
+        } else {
+          this.setState({ movies: json });
+        }
       });
   };
 
   componentDidMount() {
     this.fetchData();
+  }
+  componentDidUpdate() {
+    if (this.old !== this.state.search || this.prevPage !== this.state.page) {
+      this.fetchData(this.state.search, this.state.page);
+      this.old = this.state.search;
+    }
   }
 
   render() {
@@ -79,8 +95,13 @@ export default class App extends React.Component {
     return (
       <div>
         <Search search={this.handleSearch} />
+
         <Results
-          elements={this.slicedMovies}
+          elements={
+            this.searchedMovie.length === 0
+              ? this.slicedMovies
+              : this.searchedMovie
+          }
           previous={this.prev}
           next={this.next}
         />

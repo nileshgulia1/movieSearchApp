@@ -28,6 +28,7 @@ export default class Cards extends React.Component {
             <div className="featured-title-box">
               <h6>{this.props.movie.movie_title}</h6>
               <span>• </span>
+
               <p>
                 {this.props.movie.genres.split("|").map(item => (
                   <p>{item}</p>
